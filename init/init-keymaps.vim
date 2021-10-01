@@ -20,28 +20,31 @@
 "----------------------------------------------------------------------
 nmap <Space> :
 
+imap <A-a> <Esc>
 "----------------------------------------------------------------------
 " INSERT 模式下使用 EMACS 键位
 "----------------------------------------------------------------------
-inoremap <c-a> <home>
-inoremap <c-e> <end>
-inoremap <c-d> <del>
-inoremap <c-_> <c-k>
+inoremap <A-h> <home>
+inoremap <A-l> <end>
+inoremap <A-d> <del>
+"inoremap <c-_> <c-k>
 
+nmap <A-h> <home>
+nmap <A-l> <end>
 
 "----------------------------------------------------------------------
 " 设置 CTRL+HJKL 移动光标（INSERT 模式偶尔需要移动的方便些）
 " 使用 SecureCRT/XShell 等终端软件需设置：Backspace sends delete
 " 详见：http://www.skywind.me/blog/archives/2021
 "----------------------------------------------------------------------
-noremap <C-h> <left>
-noremap <C-j> <down>
-noremap <C-k> <up>
-noremap <C-l> <right>
-inoremap <C-h> <left>
-inoremap <C-j> <down>
-inoremap <C-k> <up>
-inoremap <C-l> <right>
+"noremap <C-h> <left>
+"noremap <C-j> <down>
+"noremap <C-k> <up>
+"noremap <C-l> <right>
+"inoremap <C-h> <left>
+"inoremap <C-j> <down>
+"inoremap <C-k> <up>
+"inoremap <C-l> <right>
 
 
 "----------------------------------------------------------------------
@@ -129,8 +132,8 @@ endif
 "----------------------------------------------------------------------
 " 缓存：插件 unimpaired 中定义了 [b, ]b 来切换缓存
 "----------------------------------------------------------------------
-noremap <silent> <leader>bn :bn<cr>
-noremap <silent> <leader>bp :bp<cr>
+"noremap <silent> <leader>bn :bn<cr>
+"noremap <silent> <leader>bp :bp<cr>
 
 
 "----------------------------------------------------------------------
@@ -171,24 +174,24 @@ noremap <silent><m-right> :call Tab_MoveRight()<cr>
 "----------------------------------------------------------------------
 
 " ALT+h/l 快速左右按单词移动（正常模式+插入模式）
-noremap <m-h> b
-noremap <m-l> w
-inoremap <m-h> <c-left>
-inoremap <m-l> <c-right>
+"noremap <m-h> b
+"noremap <m-l> w
+"inoremap <m-h> <c-left>
+"inoremap <m-l> <c-right>
 
 " ALT+j/k 逻辑跳转下一行/上一行（按 wrap 逻辑换行进行跳转） 
-noremap <m-j> gj
-noremap <m-k> gk
-inoremap <m-j> <c-\><c-o>gj
-inoremap <m-k> <c-\><c-o>gk
+"noremap <m-j> gj
+"noremap <m-k> gk
+"inoremap <m-j> <c-\><c-o>gj
+"inoremap <m-k> <c-\><c-o>gk
 
 " 命令模式下的相同快捷
-cnoremap <m-h> <c-left>
-cnoremap <m-l> <c-right>
+"cnoremap <m-h> <c-left>
+"cnoremap <m-l> <c-right>
 
 " ALT+y 删除到行末
-noremap <m-y> d$
-inoremap <m-y> <c-\><c-o>d$
+"noremap <m-y> d$
+"inoremap <m-y> <c-\><c-o>d$
 
 
 "----------------------------------------------------------------------
@@ -224,113 +227,5 @@ elseif has('nvim')
 	tnoremap <m-q> <c-\><c-n>
 endif
 
-
-
-"----------------------------------------------------------------------
-" 编译运行 C/C++ 项目
-" 详细见：http://www.skywind.me/blog/archives/2084
-"----------------------------------------------------------------------
-
-" 自动打开 quickfix window ，高度为 6
-let g:asyncrun_open = 6
-
-" 任务结束时候响铃提醒
-let g:asyncrun_bell = 1
-
-" 设置 F10 打开/关闭 Quickfix 窗口
-nnoremap <F10> :call asyncrun#quickfix_toggle(6)<cr>
-
-" F9 编译 C/C++ 文件
-nnoremap <silent> <F9> :AsyncRun gcc -Wall -O2 "$(VIM_FILEPATH)" -o "$(VIM_FILEDIR)/$(VIM_FILENOEXT)" <cr>
-
-" F5 运行文件
-nnoremap <silent> <F5> :call ExecuteFile()<cr>
-
-" F7 编译项目
-nnoremap <silent> <F7> :AsyncRun -cwd=<root> make <cr>
-
-" F8 运行项目
-nnoremap <silent> <F8> :AsyncRun -cwd=<root> -raw make run <cr>
-
-" F6 测试项目
-nnoremap <silent> <F6> :AsyncRun -cwd=<root> -raw make test <cr>
-
-" 更新 cmake
-nnoremap <silent> <F4> :AsyncRun -cwd=<root> cmake . <cr>
-
-" Windows 下支持直接打开新 cmd 窗口运行
-if has('win32') || has('win64')
-	nnoremap <silent> <F8> :AsyncRun -cwd=<root> -mode=4 make run <cr>
-endif
-
-
-"----------------------------------------------------------------------
-" F5 运行当前文件：根据文件类型判断方法，并且输出到 quickfix 窗口
-"----------------------------------------------------------------------
-function! ExecuteFile()
-	let cmd = ''
-	if index(['c', 'cpp', 'rs', 'go'], &ft) >= 0
-		" native 语言，把当前文件名去掉扩展名后作为可执行运行
-		" 写全路径名是因为后面 -cwd=? 会改变运行时的当前路径，所以写全路径
-		" 加双引号是为了避免路径中包含空格
-		let cmd = '"$(VIM_FILEDIR)/$(VIM_FILENOEXT)"'
-	elseif &ft == 'python'
-		let $PYTHONUNBUFFERED=1 " 关闭 python 缓存，实时看到输出
-		let cmd = 'python "$(VIM_FILEPATH)"'
-	elseif &ft == 'javascript'
-		let cmd = 'node "$(VIM_FILEPATH)"'
-	elseif &ft == 'perl'
-		let cmd = 'perl "$(VIM_FILEPATH)"'
-	elseif &ft == 'ruby'
-		let cmd = 'ruby "$(VIM_FILEPATH)"'
-	elseif &ft == 'php'
-		let cmd = 'php "$(VIM_FILEPATH)"'
-	elseif &ft == 'lua'
-		let cmd = 'lua "$(VIM_FILEPATH)"'
-	elseif &ft == 'zsh'
-		let cmd = 'zsh "$(VIM_FILEPATH)"'
-	elseif &ft == 'ps1'
-		let cmd = 'powershell -file "$(VIM_FILEPATH)"'
-	elseif &ft == 'vbs'
-		let cmd = 'cscript -nologo "$(VIM_FILEPATH)"'
-	elseif &ft == 'sh'
-		let cmd = 'bash "$(VIM_FILEPATH)"'
-	else
-		return
-	endif
-	" Windows 下打开新的窗口 (-mode=4) 运行程序，其他系统在 quickfix 运行
-	" -raw: 输出内容直接显示到 quickfix window 不匹配 errorformat
-	" -save=2: 保存所有改动过的文件
-	" -cwd=$(VIM_FILEDIR): 运行初始化目录为文件所在目录
-	if has('win32') || has('win64')
-		exec 'AsyncRun -cwd=$(VIM_FILEDIR) -raw -save=2 -mode=4 '. cmd
-	else
-		exec 'AsyncRun -cwd=$(VIM_FILEDIR) -raw -save=2 -mode=0 '. cmd
-	endif
-endfunc
-
-
-
-"----------------------------------------------------------------------
-" F2 在项目目录下 Grep 光标下单词，默认 C/C++/Py/Js ，扩展名自己扩充
-" 支持 rg/grep/findstr ，其他类型可以自己扩充
-" 不是在当前目录 grep，而是会去到当前文件所属的项目目录 project root
-" 下面进行 grep，这样能方便的对相关项目进行搜索
-"----------------------------------------------------------------------
-if executable('rg')
-	noremap <silent><F2> :AsyncRun! -cwd=<root> rg -n --no-heading 
-				\ --color never -g *.h -g *.c* -g *.py -g *.js -g *.vim 
-				\ <C-R><C-W> "<root>" <cr>
-elseif has('win32') || has('win64')
-	noremap <silent><F2> :AsyncRun! -cwd=<root> findstr /n /s /C:"<C-R><C-W>" 
-				\ "\%CD\%\*.h" "\%CD\%\*.c*" "\%CD\%\*.py" "\%CD\%\*.js"
-				\ "\%CD\%\*.vim"
-				\ <cr>
-else
-	noremap <silent><F2> :AsyncRun! -cwd=<root> grep -n -s -R <C-R><C-W> 
-				\ --include='*.h' --include='*.c*' --include='*.py' 
-				\ --include='*.js' --include='*.vim'
-				\ '<root>' <cr>
-endif
 
 
